@@ -1,0 +1,29 @@
+classDiagram
+    class CEO {
+        +String Login
+        +String Password
+    }
+    
+    class Project {
+        +Number ID
+        +Number[] TasksId
+        +Number[] Access
+        +String Name
+    }
+    
+    class Report {
+        +Number Time
+        +Date Date
+        +String Task
+        +String Project
+    }
+    
+    class Employee {
+        +Number ID
+        +String Login
+        +String Password
+    }
+    
+    CEO "1" --> "*" Project : Manages
+    CEO "1" --> "*" Report : Controls
+    CEO "1" --> "*" Employee : Assigns
