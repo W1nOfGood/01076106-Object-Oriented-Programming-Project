@@ -2,12 +2,18 @@ classDiagram
     class User {
         citizen_id: String
         name: String
+        get_citizen_id()
+        get_name()
     }
     
     class Account {
         account_number: String
         balance: Float
         transactions: List
+        deposit()
+        withdraw()
+        transfer_out()
+        transfer_in()
     }
     
     class Transaction {
@@ -16,6 +22,8 @@ classDiagram
         atm_id: String
         balance: Float
         transfer_account: String
+        get_transaction_type()
+        get_amount()
     }
     
     class ATMCard {
@@ -23,11 +31,17 @@ classDiagram
         pin: String
         annual_fee: Float
         daily_withdrawal_limit: Float
+        verify_pin()
+        get_account()
     }
     
     class ATMMachine {
         machine_id: String
         balance: Float
+        insert_card()
+        deposit()
+        withdraw()
+        transfer()
     }
     
     class Bank {
@@ -35,12 +49,16 @@ classDiagram
         accounts: List
         cards: List
         atms: List
+        add_user()
+        add_account()
+        add_card()
+        get_card()
     }
     
-    User "1" --> "1" Account : Owns
-    Account "1" --> "*" Transaction : Records
-    ATMCard "1" --> "1" Account : Links
-    ATMMachine "*" --> "1" Bank : Belongs
-    Bank "1" --> "*" User : Manages
-    Bank "1" --> "*" Account : Holds
-    Bank "1" --> "*" ATMCard : Issues
+    User "1" --> "1" Account
+    Account "1" --> "*" Transaction
+    ATMCard "1" --> "1" Account
+    ATMMachine "*" --> "1" Bank
+    Bank "1" --> "*" User
+    Bank "1" --> "*" Account
+    Bank "1" --> "*" ATMCard
