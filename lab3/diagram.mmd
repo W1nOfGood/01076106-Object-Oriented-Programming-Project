@@ -1,0 +1,62 @@
+classDiagram
+    class User {
+        +String nationalID
+        +String firstName
+        +String lastName
+    }
+    
+    class SavingsAccount {
+        +String accountNumber
+        +User accountOwner
+        +float balance
+        +deposit(amount: float, atmNumber: String)
+        +withdraw(amount: float, atmNumber: String) bool
+        +transfer(amount: float, toAccount: SavingsAccount, atmNumber: String) bool
+        +addTransaction(transaction: Transaction)
+    }
+    
+    class ATMCard {
+        +String cardNumber
+        +String accountNumber
+        +String pinNumber
+        +float annualFee = 150
+        +float dailyWithdrawLimit = 40000
+        +float todayWithdrawn
+        +resetDailyLimit()
+        +canWithdraw(amount: float) bool
+    }
+    
+    class ATM {
+        +String machineNumber
+        +float cashInMachine = 1000000
+        +deposit(card: ATMCard, amount: float)
+        +withdraw(card: ATMCard, amount: float) bool
+        +transfer(card: ATMCard, amount: float, toAccountNumber: String) bool
+    }
+    
+    class Transaction {
+        +String transactionType
+        +float amount
+        +String atmNumber
+        +String transferAccountNumber
+        +Date timestamp
+    }
+    
+    class BankRules {
+        <<utility>>
+        +float ATM_CARD_ANNUAL_FEE = 150
+        +float MAX_DAILY_WITHDRAWAL = 40000
+    }
+    
+    User "1" --> "*" SavingsAccount : owns
+    SavingsAccount "1" --> "0..1" ATMCard : has
+    SavingsAccount "1" --> "*" Transaction : records
+    ATM ..> ATMCard : uses
+    ATM ..> SavingsAccount : accesses
+    Transaction --> ATM : performed at
+    
+    note for Transaction "Transaction Types:
+    D = Deposit
+    W = Withdraw
+    TD = Transfer Deposit (in)
+    TW = Transfer Withdraw (out)"
