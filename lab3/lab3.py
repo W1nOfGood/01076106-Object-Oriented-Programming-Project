@@ -1,22 +1,9 @@
-class User:
-    def __init__(self, citizen_id: str, name: str):
-        self.__citizen_id = citizen_id
-        self.__name = name
-
-    def get_citizen_id(self) -> str:
-        return self.__citizen_id
-
-    def get_name(self) -> str:
-        return self.__name
-
-
 class Transaction:
-    def __init__(self, transaction_type: str, amount: float, atm_id: str, balance: float, transfer_account = None):
+    def __init__(self, transaction_type: str, amount: float, atm_id: str, balance: float):
         self.__transaction_type = transaction_type
         self.__amount = amount
         self.__atm_id = atm_id
         self.__balance = balance
-        self.__transfer_account = transfer_account
 
     def get_transaction_type(self) -> str:
         return self.__transaction_type
@@ -30,25 +17,18 @@ class Transaction:
     def get_balance(self) -> float:
         return self.__balance
 
-    def get_transfer_account(self):
-        return self.__transfer_account
-
     def __str__(self) -> str:
         return f"{self.__transaction_type}-ATM:{self.__atm_id}-{int(self.__amount)}-{int(self.__balance)}"
 
 
 class Account:
-    def __init__(self, account_number: str, owner: User):
+    def __init__(self, account_number: str):
         self.__account_number = account_number
-        self.__owner = owner
         self.__balance = 0.0
         self.__transactions = []
 
     def get_account_number(self) -> str:
         return self.__account_number
-
-    def get_owner(self) -> User:
-        return self.__owner
 
     def get_balance(self) -> float:
         return self.__balance
@@ -72,19 +52,19 @@ class Account:
         self.__transactions.append(transaction)
         return "success"
 
-    def transfer_out(self, amount: float, atm_id: str, to_account_number: str) -> str:
+    def transfer_out(self, amount: float, atm_id: str) -> str:
         if amount <= 0 or amount > self.__balance:
             return "error"
         self.__balance -= amount
-        transaction = Transaction("TW", amount, atm_id, self.__balance, to_account_number)
+        transaction = Transaction("TW", amount, atm_id, self.__balance)
         self.__transactions.append(transaction)
         return "success"
 
-    def transfer_in(self, amount: float, atm_id: str, from_account_number: str) -> str:
+    def transfer_in(self, amount: float, atm_id: str) -> str:
         if amount <= 0:
             return "error"
         self.__balance += amount
-        transaction = Transaction("TD", amount, atm_id, self.__balance, from_account_number)
+        transaction = Transaction("TD", amount, atm_id, self.__balance)
         self.__transactions.append(transaction)
         return "success"
 
@@ -97,8 +77,6 @@ class ATMCard:
         self.__card_number = card_number
         self.__account = account
         self.__pin = pin
-        self.__annual_fee = 150
-        self.__daily_withdrawal_limit = 40000
 
     def get_card_number(self) -> str:
         return self.__card_number
@@ -108,9 +86,6 @@ class ATMCard:
 
     def verify_pin(self, pin: str) -> bool:
         return self.__pin == pin
-
-    def get_daily_withdrawal_limit(self) -> float:
-        return self.__daily_withdrawal_limit
 
 
 class ATMMachine:
@@ -164,11 +139,11 @@ class ATMMachine:
         if amount <= 0 or amount > from_account.get_balance():
             return "error"
 
-        result_out = from_account.transfer_out(amount, self.__machine_id, to_account.get_account_number())
+        result_out = from_account.transfer_out(amount, self.__machine_id)
         if result_out == "error":
             return "error"
 
-        result_in = to_account.transfer_in(amount, self.__machine_id, from_account.get_account_number())
+        result_in = to_account.transfer_in(amount, self.__machine_id)
         if result_in == "error":
             return "error"
 
@@ -177,13 +152,9 @@ class ATMMachine:
 
 class Bank:
     def __init__(self):
-        self.__users = []
         self.__accounts = []
         self.__cards = []
         self.__atms = []
-
-    def add_user(self, user: User):
-        self.__users.append(user)
 
     def add_account(self, account: Account):
         self.__accounts.append(account)
@@ -225,15 +196,11 @@ atm ={'1001':1000000,'1002':200000}
 bank = Bank()
 
 for citizen_id, data in user.items():
-    name = data[0]
     account_number = data[1]
     card_number = data[2]
     initial_balance = data[3]
 
-    user_obj = User(citizen_id, name)
-    bank.add_user(user_obj)
-
-    account_obj = Account(account_number, user_obj)
+    account_obj = Account(account_number)
     bank.add_account(account_obj)
 
     account_obj.set_balance(initial_balance)
