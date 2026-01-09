@@ -222,32 +222,25 @@ atm ={'1001':1000000,'1002':200000}
 ## TODO: [Name, Account Number, ATM Card Number, Account Balance].
 ## TODO: Return the instance of the bank and create two ATM instances.
 
-# Create Bank instance
 bank = Bank()
 
-# Create User instances and their accounts
 for citizen_id, data in user.items():
     name = data[0]
     account_number = data[1]
     card_number = data[2]
     initial_balance = data[3]
 
-    # Create User
     user_obj = User(citizen_id, name)
     bank.add_user(user_obj)
 
-    # Create Account
     account_obj = Account(account_number, user_obj)
     bank.add_account(account_obj)
 
-    # Set initial balance
     account_obj.set_balance(initial_balance)
 
-    # Create ATM Card
     card_obj = ATMCard(card_number, account_obj, "1234")
     bank.add_card(card_obj)
 
-# Create ATM machines
 for atm_id, balance in atm.items():
     atm_obj = ATMMachine(atm_id, balance)
     atm_obj.set_bank(bank)
