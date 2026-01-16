@@ -1,0 +1,113 @@
+classDiagram
+    class Bank {
+        -name
+        -user_list
+        -card_list
+        -atm_list
+        -seller_list
+        +add_user(user)
+        +add_atm_machine(atm_machine)
+        +add_seller(seller)
+        +search_user_from_id(citizen_id)
+        +search_atm_machine(atm_no)
+        +search_seller(name)
+        +search_account_from_card(card_no)
+        +search_account_from_account_no(account_no)
+    }
+
+    class User {
+        -citizen_id
+        -name
+        -account_list
+        +add_account(account)
+        +search_account(account_no)
+    }
+
+    class Account {
+        -account_no
+        -user
+        -amount
+        -transaction
+        +__add__(amount)
+        +__sub__(amount)
+        +transfer(pin, amount, target_account)
+        +paid(amount, target_account)
+        +get_card()
+        +__iter__()
+    }
+
+    class SavingAccount {
+        +interest_rate
+        +type
+        -card
+        +add_card(card)
+        +get_card()
+    }
+
+    class FixDepositAccount {
+        +interest_rate
+    }
+
+    class Transaction {
+        -transaction_type
+        -amount
+        -total
+        -target_account
+    }
+
+    class Card {
+        -card_no
+        -account
+        -pin
+    }
+
+    class ATM_Card {
+        +fee
+    }
+
+    class Debit_Card {
+        +fee
+    }
+
+    class ATM_machine {
+        -atm_no
+        -money
+        +withdraw_limit
+        +insert_card(card, pin)
+        +deposit(account, amount)
+        +withdraw(account, amount)
+        +transfer(account, amount, target_account)
+    }
+
+    class Seller {
+        -seller_no
+        -name
+        -edc_list
+        +add_edc(edc_machine)
+        +search_edc_from_no(edc_no)
+        +paid(account, amount, target_account)
+    }
+
+    class EDC_machine {
+        -edc_no
+        -seller
+        +paid(card, amount, target_account)
+    }
+
+    Bank "1" o-- "*" User
+    User "1" o-- "*" Account
+    Account "1" o-- "*" Transaction
+    SavingAccount --|> Account
+    FixDepositAccount --|> Account
+    Card "1" --> "1" Account
+    ATM_Card --|> Card
+    Debit_Card --|> Card
+    SavingAccount "1" o-- "0..1" Card
+    Bank "1" o-- "*" ATM_machine
+    Bank "1" o-- "*" Seller
+    Seller "1" o-- "*" EDC_machine
+    ATM_machine ..> Card
+    ATM_machine ..> Account
+    EDC_machine ..> Debit_Card
+    EDC_machine ..> Account
+    Seller ..> Account
