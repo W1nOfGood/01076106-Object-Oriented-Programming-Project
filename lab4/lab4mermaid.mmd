@@ -1,8 +1,6 @@
 classDiagram
     class Bank {
-        -String __name
         -List~User~ __user_list
-        -List~Card~ __card_list
         -List~ATM_machine~ __atm_list
         -List~Seller~ __seller_list
         +add_user(User user)
@@ -28,29 +26,24 @@ classDiagram
 
     class Account {
         -String __account_no
-        -User __user
         -float __amount
         -List~Transaction~ __transaction
         +account_no String
         +amount float
-        +user User
         +__add__(float amount) Account
         +__sub__(float amount) Account
-        +transfer(String pin, float amount, Account target_account) Account
+        +transfer(float amount, Account target_account) Account
         +paid(float amount, Account target_account) Account
         +__iter__() Iterator
     }
 
     class SavingAccount {
-        +float interest_rate = 0.5$
-        +String type = "Saving"$
         -Card __card
         +add_card(Card card)
         +get_card() Card
     }
 
     class FixDepositAccount {
-        +float interest_rate = 2.5$
     }
 
     class Transaction {
@@ -58,10 +51,6 @@ classDiagram
         -float __amount
         -float __total
         -String __target_account
-        +transaction_type String
-        +amount float
-        +total float
-        +target_account String
         +__str__() String
     }
 
@@ -75,11 +64,9 @@ classDiagram
     }
 
     class ATM_Card {
-        +int fee = 150$
     }
 
     class Debit_Card {
-        +int fee = 300$
     }
 
     class ATM_machine {
@@ -88,7 +75,6 @@ classDiagram
         -String __atm_no
         -float __money
         +atm_no String
-        +money float
         +insert_card(Card card, String pin) String
         +deposit(Account account, float amount) ATM_machine
         +withdraw(Account account, float amount) ATM_machine
@@ -96,10 +82,8 @@ classDiagram
     }
 
     class Seller {
-        -String __seller_no
         -String __name
         -List~EDC_machine~ __edc_list
-        +seller_no String
         +name String
         +add_edc(EDC_machine edc)
         +search_edc_from_no(String edc_no) EDC_machine
@@ -108,9 +92,7 @@ classDiagram
 
     class EDC_machine {
         -String __edc_no
-        -Seller __seller
         +edc_no String
-        +seller Seller
         +paid(Debit_Card debit_card, float amount, Account target_account)
     }
 
@@ -128,5 +110,4 @@ classDiagram
     Account "1" *-- "*" Transaction : records
     SavingAccount "1" o-- "0..1" Card : has
     Seller "1" *-- "*" EDC_machine : owns
-    EDC_machine "*" --> "1" Seller : belongs to
     Card "*" --> "1" Account : linked to
