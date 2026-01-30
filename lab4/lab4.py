@@ -8,20 +8,7 @@ class Bank:
         self.__seller_list = []
 
     def add_user(self, user):
-        if user is None:
-            return
-        if self.search_user_from_id(user.citizen_id) is None:
-            self.__user_list.append(user)
-
-    def add_atm_machine(self, atm_machine):
-        if atm_machine is None:
-            return
-        self.__atm_list.append(atm_machine)
-
-    def add_seller(self, seller):
-        if seller is None:
-            return
-        self.__seller_list.append(seller)
+        self.__user_list.append(user)
 
     def search_user_from_id(self, citizen_id):
         for user in self.__user_list:
@@ -29,11 +16,17 @@ class Bank:
                 return user
         return None
 
+    def add_atm_machine(self, atm):
+        self.__atm_list.append(atm)
+
     def search_atm_machine(self, atm_no):
-        for atm_machine in self.__atm_list:
-            if atm_machine.atm_no == atm_no:
-                return atm_machine
+        for atm in self.__atm_list:
+            if atm.atm_no == atm_no:
+                return atm
         return None
+
+    def add_seller(self, seller):
+        self.__seller_list.append(seller)
 
     def search_seller(self, name):
         for seller in self.__seller_list:
@@ -44,9 +37,9 @@ class Bank:
     def search_account_from_card(self, card_no):
         for user in self.__user_list:
             for account in user.account_list:
-                card = account.get_card()
-                if card is not None and card.card_no == card_no:
-                    return account
+                if hasattr(account, 'get_card') and account.get_card() is not None:
+                    if account.get_card().card_no == card_no:
+                        return account
         return None
 
     def search_account_from_account_no(self, account_no):
@@ -75,10 +68,7 @@ class User:
         return self.__account_list
 
     def add_account(self, account):
-        if account is None:
-            return
-        if self.search_account(account.account_no) is None:
-            self.__account_list.append(account)
+        self.__account_list.append(account)
 
     def search_account(self, account_no):
         for account in self.__account_list:
@@ -98,64 +88,38 @@ class Account:
         return self.__account_no
 
     @property
-    def user(self):
-        return self.__user
-
-    @property
     def amount(self):
         return self.__amount
 
-    def __is_valid_amount(self, amount):
-        return isinstance(amount, (int, float)) and amount > 0
+    @property
+    def user(self):
+        return self.__user
 
     def __add__(self, amount):
-        if not self.__is_valid_amount(amount):
-            return None
-        self.__amount += amount
-        self.__transaction.append(Transaction("D", amount, self.__amount, None))
-        return self.__amount
+        if amount > 0:
+            self.__amount += amount
+            self.__transaction.append(Transaction('D', amount, self.__amount, None))
+        return self
 
     def __sub__(self, amount):
-        if not self.__is_valid_amount(amount):
-            return None
-        if amount > self.__amount:
-            return None
-        self.__amount -= amount
-        self.__transaction.append(Transaction("W", amount, self.__amount, None))
-        return self.__amount
+        if amount > 0 and amount <= self.__amount:
+            self.__amount -= amount
+            self.__transaction.append(Transaction('W', amount, self.__amount, None))
+        return self
 
     def transfer(self, pin, amount, target_account):
-        if not self.__is_valid_amount(amount):
-            return None
-        if target_account is None or amount > self.__amount:
-            return None
-        self.__amount -= amount
-        self.__transaction.append(
-            Transaction("T", amount, self.__amount, target_account.account_no)
-        )
-        target_account.__amount += amount
-        target_account.__transaction.append(
-            Transaction("T", amount, target_account.__amount, self.__account_no)
-        )
-        return self.__amount
+        if amount > 0 and amount <= self.__amount and amount <= 100000:
+            self.__amount -= amount
+            self.__transaction.append(Transaction('T', amount, self.__amount, target_account.account_no))
+            target_account + amount
+        return self
 
     def paid(self, amount, target_account):
-        if not self.__is_valid_amount(amount):
-            return None
-        if target_account is None or amount > self.__amount:
-            return None
-        self.__amount -= amount
-        self.__transaction.append(
-            Transaction("P", amount, self.__amount, target_account.account_no)
-        )
-        target_account.__amount += amount
-        target_account.__transaction.append(
-            Transaction("P", amount, target_account.__amount, self.__account_no)
-        )
-        return self.__amount
-
-    def get_card(self):
-        return None
+        if amount > 0 and amount <= self.__amount:
+            self.__amount -= amount
+            self.__transaction.append(Transaction('P', amount, self.__amount, target_account.account_no))
+            target_account + amount
+        return self
 
     def __iter__(self):
         return iter(self.__transaction)
@@ -170,8 +134,6 @@ class SavingAccount(Account):
         self.__card = None
 
     def add_card(self, card):
-        if card is None:
-            return
         self.__card = card
 
     def get_card(self):
@@ -204,6 +166,11 @@ class Transaction:
     def target_account(self):
         return self.__target_account
 
+    def __str__(self):
+        if self.__target_account:
+            return f"Type: {self.__transaction_type}, Amount: {self.__amount}, Balance: {self.__total}, Target: {self.__target_account}"
+        return f"Type: {self.__transaction_type}, Amount: {self.__amount}, Balance: {self.__total}"
+
 class Card:
     def __init__(self,card_no, account, pin):
         self.__card_no = card_no
@@ -233,6 +200,7 @@ class Debit_Card(Card):
 class ATM_machine:
 
     withdraw_limit = 20000
+    transfer_limit = 100000
 
     def __init__(self,atm_no,money):
         self.__atm_no = atm_no
@@ -242,35 +210,31 @@ class ATM_machine:
     def atm_no(self):
         return self.__atm_no
 
+    @property
+    def money(self):
+        return self.__money
+
     def insert_card(self, card, pin):
-        if card is not None and card.pin == pin:
+        if card.pin == pin:
             return "Success"
         return None
 
     def deposit(self, account, amount):
-        if account is None:
-            return None
-        if account.__add__(amount) is None:
-            return None
-        self.__money += amount
-        return account.amount
+        if amount > 0:
+            self.__money += amount
+            account + amount
+        return self
 
     def withdraw(self, account, amount):
-        if account is None:
-            return None
-        if amount > self.withdraw_limit:
-            return None
-        if amount > self.__money:
-            return None
-        if account.__sub__(amount) is None:
-            return None
-        self.__money -= amount
-        return account.amount
+        if amount > 0 and amount <= self.withdraw_limit and amount <= self.__money and amount <= account.amount:
+            self.__money -= amount
+            account - amount
+        return self
 
-    def transfer(self,account, amount, target_account):
-        if amount > 100000:
-            return None
-        return account.transfer(None, amount, target_account)
+    def transfer(self, account, amount, target_account):
+        if amount > 0 and amount <= self.transfer_limit and amount <= account.amount:
+            account.transfer("", amount, target_account)
+        return self
 
 class Seller:
     def __init__(self,seller_no,name):
@@ -279,13 +243,15 @@ class Seller:
         self.__edc_list = []
 
     @property
+    def seller_no(self):
+        return self.__seller_no
+
+    @property
     def name(self):
         return self.__name
 
-    def add_edc(self, edc_machine):
-        if edc_machine is None:
-            return
-        self.__edc_list.append(edc_machine)
+    def add_edc(self, edc):
+        self.__edc_list.append(edc)
 
     def search_edc_from_no(self, edc_no):
         for edc in self.__edc_list:
@@ -294,9 +260,7 @@ class Seller:
         return None
 
     def paid(self, account, amount, target_account):
-        if account is None:
-            return None
-        return account.paid(amount, target_account)
+        account.paid(amount, target_account)
 
 class EDC_machine:
     def __init__(self,edc_no,seller):
@@ -307,10 +271,13 @@ class EDC_machine:
     def edc_no(self):
         return self.__edc_no
 
-    def paid(self, card, amount, target_account):
-        if not isinstance(card, Debit_Card):
-            return None
-        return card.account.paid(amount, target_account)
+    @property
+    def seller(self):
+        return self.__seller
+
+    def paid(self, debit_card, amount, target_account):
+        debit_card.account.paid(amount, target_account)
+
 
 
 ##################################################################################
@@ -531,3 +498,16 @@ print("")
 
 
 # Test case #6: Display all transactions of Hermione using a `for` loop.
+# Expected outcome:
+# Test Case #6
+# Hermione's transactions:
+# Type: W, Amount: 1000, Balance: 1000
+# Type: D, Amount: 10000, Balance: 11000
+# Type: P, Amount: 500, Balance: 10500
+# Type: P, Amount: 500, Balance: 10000
+
+hermione_account = scb.search_account_from_account_no('0987654321')
+print("Test Case #6")
+print("Hermione's transactions:")
+for transaction in hermione_account:
+    print(transaction)
