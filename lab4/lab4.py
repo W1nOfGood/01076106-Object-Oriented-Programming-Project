@@ -1,9 +1,7 @@
 class Bank:
 
-    def __init__(self,name):
-        self.__name=name
+    def __init__(self):
         self.__user_list = []
-        self.__card_list = []
         self.__atm_list = []
         self.__seller_list = []
 
@@ -77,9 +75,8 @@ class User:
         return None
 
 class Account:
-    def __init__(self, account_no, user, amount):
+    def __init__(self, account_no, amount):
         self.__account_no = account_no
-        self.__user = user
         self.__amount = amount
         self.__transaction = []
 
@@ -90,10 +87,6 @@ class Account:
     @property
     def amount(self):
         return self.__amount
-
-    @property
-    def user(self):
-        return self.__user
 
     def __add__(self, amount):
         if amount > 0:
@@ -107,7 +100,7 @@ class Account:
             self.__transaction.append(Transaction('W', amount, self.__amount, None))
         return self
 
-    def transfer(self, pin, amount, target_account):
+    def transfer(self, amount, target_account):
         if amount > 0 and amount <= self.__amount and amount <= 100000:
             self.__amount -= amount
             self.__transaction.append(Transaction('T', amount, self.__amount, target_account.account_no))
@@ -126,11 +119,8 @@ class Account:
 
 class SavingAccount(Account):
 
-    interest_rate = 0.5
-    type = "Saving"
-
-    def __init__(self, account_no, user, amount):
-        Account.__init__(self, account_no, user, amount)
+    def __init__(self, account_no, amount):
+        Account.__init__(self, account_no, amount)
         self.__card = None
 
     def add_card(self, card):
@@ -140,8 +130,7 @@ class SavingAccount(Account):
         return self.__card
 
 class FixDepositAccount(Account):
-
-    interest_rate = 2.5
+    pass
 
 class Transaction:
     def __init__(self, transaction_type, amount, total, target_account):
@@ -149,22 +138,6 @@ class Transaction:
         self.__amount = amount
         self.__total = total
         self.__target_account = target_account
-
-    @property
-    def transaction_type(self):
-        return self.__transaction_type
-
-    @property
-    def amount(self):
-        return self.__amount
-
-    @property
-    def total(self):
-        return self.__total
-
-    @property
-    def target_account(self):
-        return self.__target_account
 
     def __str__(self):
         if self.__target_account:
@@ -190,12 +163,10 @@ class Card:
         return self.__pin
 
 class ATM_Card(Card):
-
-    fee = 150
+    pass
 
 class Debit_Card(Card):
-
-    fee = 300
+    pass
 
 class ATM_machine:
 
@@ -209,10 +180,6 @@ class ATM_machine:
     @property
     def atm_no(self):
         return self.__atm_no
-
-    @property
-    def money(self):
-        return self.__money
 
     def insert_card(self, card, pin):
         if card.pin == pin:
@@ -233,18 +200,13 @@ class ATM_machine:
 
     def transfer(self, account, amount, target_account):
         if amount > 0 and amount <= self.transfer_limit and amount <= account.amount:
-            account.transfer("", amount, target_account)
+            account.transfer(amount, target_account)
         return self
 
 class Seller:
-    def __init__(self,seller_no,name):
-        self.__seller_no = seller_no
+    def __init__(self,name):
         self.__name = name
         self.__edc_list = []
-
-    @property
-    def seller_no(self):
-        return self.__seller_no
 
     @property
     def name(self):
@@ -263,17 +225,12 @@ class Seller:
         account.paid(amount, target_account)
 
 class EDC_machine:
-    def __init__(self,edc_no,seller):
+    def __init__(self,edc_no):
         self.__edc_no = edc_no
-        self.__seller = seller
 
     @property
     def edc_no(self):
         return self.__edc_no
-
-    @property
-    def seller(self):
-        return self.__seller
 
     def paid(self, debit_card, amount, target_account):
         debit_card.account.paid(amount, target_account)
@@ -282,19 +239,7 @@ class EDC_machine:
 
 ##################################################################################
 
-# Define the format of the user as follows: {Citizen ID: [Name, Account Type, Account Number, Account Balance, Card Type, Card Number]}
-
-user ={'1-1101-12345-12-0':['Harry Potter','Savings','1234567890',20000,'ATM','12345'],
-       '1-1101-12345-13-0':['Hermione Jean Granger','Saving','0987654321',1000,'Debit','12346'],
-       '1-1101-12345-13-0':['Hermione Jean Granger','Fix Deposit','0987654322',1000,'',''],
-       '9-0000-00000-01-0':['KFC','Savings','0000000321',0,'',''],
-       '9-0000-00000-02-0':['Tops','Savings','0000000322',0,'','']}
-
-atm ={'1001':1000000,'1002':200000}
-
-seller_dic = {'210':"KFC", '220':"Tops"}
-
-EDC = {'2101':"KFC", '2201':"Tops"}
+# Reference data format: {Citizen ID: [Name, Account Type, Account Number, Account Balance, Card Type, Card Number]}
 
 
 # TODO 1: Create an instance of the Bank and create instances of User, Account, and Card
@@ -303,24 +248,24 @@ EDC = {'2101':"KFC", '2201':"Tops"}
 # TODO   : The Card class is divided into two subclasses: ATM and Debit.
 
 
-scb = Bank('SCB')
+scb = Bank()
 scb.add_user(User('1-1101-12345-12-0','Harry Potter'))
 scb.add_user(User('1-1101-12345-13-0','Hermione Jean Granger'))
 scb.add_user(User('9-0000-00000-01-0','KFC'))
 scb.add_user(User('9-0000-00000-02-0','Tops'))
 harry = scb.search_user_from_id('1-1101-12345-12-0')
-harry.add_account(SavingAccount('1234567890', harry, 20000))
+harry.add_account(SavingAccount('1234567890', 20000))
 harry_account = harry.search_account('1234567890')
-harry_account.add_card(ATM_Card('12345', harry, '1234'))
+harry_account.add_card(ATM_Card('12345', harry_account, '1234'))
 hermione = scb.search_user_from_id('1-1101-12345-13-0')
-hermione.add_account(SavingAccount('0987654321',hermione,2000))
+hermione.add_account(SavingAccount('0987654321', 2000))
 hermione_account1 = hermione.search_account('0987654321')
-hermione_account1.add_card(Debit_Card('12346',hermione_account1,'1234'))
-hermione.add_account(FixDepositAccount('0987654322',hermione,1000))
+hermione_account1.add_card(Debit_Card('12346', hermione_account1, '1234'))
+hermione.add_account(FixDepositAccount('0987654322', 1000))
 kfc = scb.search_user_from_id('9-0000-00000-01-0')
-kfc.add_account(SavingAccount('0000000321', kfc, 0))
+kfc.add_account(SavingAccount('0000000321', 0))
 tops = scb.search_user_from_id('9-0000-00000-02-0')
-tops.add_account(SavingAccount('0000000322', tops, 0))
+tops.add_account(SavingAccount('0000000322', 0))
 
 # TODO 2: Create an instance of the ATM machine
 
@@ -329,11 +274,11 @@ scb.add_atm_machine(ATM_machine('1002',200000))
 
 # TODO 3: Create an instance of Seller and add EDC machines to the Seller
 
-temp = Seller('210','KFC')
-temp.add_edc(EDC_machine('2101',temp))
+temp = Seller('KFC')
+temp.add_edc(EDC_machine('2101'))
 scb.add_seller(temp)
-temp = Seller('220',"Tops")
-temp.add_edc(EDC_machine('2201',temp))
+temp = Seller('Tops')
+temp.add_edc(EDC_machine('2201'))
 scb.add_seller(temp)
 
 # TODO 4: Create a method for deposit using `__add__` and withdrawal using `__sub__`.
@@ -434,7 +379,7 @@ print("Harry's Account No : ",harry_account.account_no)
 print("Hermione's Account No : ", hermione_account.account_no)
 print("Harry account before transfer : ",harry_account.amount)
 print("Hermione account before transfer : ",hermione_account.amount)
-harry_account.transfer("0000", 10000, hermione_account)
+harry_account.transfer(10000, hermione_account)
 print("Harry account after transfer : ",harry_account.amount)
 print("Hermione account after transfer : ",hermione_account.amount)
 print("")
@@ -483,7 +428,6 @@ print("")
 # Hermione account after paid :  10000
 
 hermione_account = scb.search_account_from_account_no('0987654321')
-debit_card = hermione_account.get_card()
 tops_account = scb.search_account_from_account_no('0000000322')
 tops = scb.search_seller('Tops')
 print("Test Case #5")
